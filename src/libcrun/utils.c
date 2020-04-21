@@ -1353,6 +1353,7 @@ run_process_with_stdin_timeout_envp (char *path,
   else
     {
       char *tmp_args[] = {path, NULL};
+#ifndef DEBUGHOOKS
       int out = open ("/dev/null", O_WRONLY);
 
       if (UNLIKELY (out < 0))
@@ -1365,6 +1366,11 @@ run_process_with_stdin_timeout_envp (char *path,
       dup2 (out, 1);
       dup2 (out, 2);
       TEMP_FAILURE_RETRY (close (out));
+#else
+      TEMP_FAILURE_RETRY (close (pipe_w));
+      dup2 (pipe_r, 0);
+      TEMP_FAILURE_RETRY (close (pipe_r));
+#endif
 
       if (args == NULL)
         args = tmp_args;
